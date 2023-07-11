@@ -11,6 +11,11 @@ impl Bool {
         Self(value)
     }
 
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Lt => Ok(self.0 < other.0),
@@ -31,6 +36,11 @@ impl Int8 {
     #[new]
     fn new(value: i8) -> Self {
         Self(value)
+    }
+
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -55,6 +65,11 @@ impl Int16 {
         Self(value)
     }
 
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Lt => Ok(self.0 < other.0),
@@ -75,6 +90,11 @@ impl Int32 {
     #[new]
     fn new(value: i32) -> Self {
         Self(value)
+    }
+
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -99,6 +119,11 @@ impl Int64 {
         Self(value)
     }
 
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Lt => Ok(self.0 < other.0),
@@ -119,6 +144,11 @@ impl Uint8 {
     #[new]
     fn new(value: u8) -> Self {
         Self(value)
+    }
+
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -143,6 +173,11 @@ impl Uint16 {
         Self(value)
     }
 
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Lt => Ok(self.0 < other.0),
@@ -163,6 +198,11 @@ impl Uint32 {
     #[new]
     fn new(value: u32) -> Self {
         Self(value)
+    }
+
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -187,6 +227,11 @@ impl Uint64 {
         Self(value)
     }
 
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Lt => Ok(self.0 < other.0),
@@ -207,6 +252,11 @@ impl Float16 {
     #[new]
     fn new(value: f32) -> Self {
         Self(f16::from_f32(value))
+    }
+
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -231,6 +281,11 @@ impl Float32 {
         Self(value)
     }
 
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
+    }
+
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
             CompareOp::Lt => Ok(self.0 < other.0),
@@ -251,6 +306,11 @@ impl Float64 {
     #[new]
     fn new(value: f64) -> Self {
         Self(value)
+    }
+
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        Ok(format!("{class_name}({})", slf.borrow().0))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
