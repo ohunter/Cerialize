@@ -2,6 +2,8 @@ from enum import Enum
 from math import prod
 import sys
 
+from .builtin_types import *
+
 class endianness(Enum):
     native = 0
     little = 1
@@ -33,6 +35,9 @@ def _process_class(cls: type, endianness: endianness , alignment: int , packed: 
         # size = type._size * prod(shape)
         # print(shape, size)
         breakpoint()
+
+    # TODO: Generate getters and delete setters for constant fields
+    # 
 
 def cstruct(cls: type | None =None, /, *, endianness: endianness =endianness.native, alignment: int =1, packed: bool=False, serialize: bool=False, deserialize: bool=False):
     """
