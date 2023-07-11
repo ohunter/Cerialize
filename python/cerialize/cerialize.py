@@ -78,20 +78,23 @@ def _process_class(
 ):
     # This function is heavily based on how dataclasses' solve the issue of type introspection
     __ignored_attributes = {
+        "_inst",
+        "_name",
+        "_paramspec_tvars",
+        "__slots__",
+        "__args__",
+        "__parameters__",
         "__module__",
         "__annotations__",
+        "__orig_bases__",
         "__dict__",
         "__weakref__",
         "__doc__",
+        "__parameters__",
     }
 
     # Dictionaries have ordered insertion which comes to play here and does have an effect on the fields themselves
     fields: dict[str, _type_spesification] = {}
-
-    if cls.__module__ in sys.modules:
-        globals = sys.modules[cls.__module__].__dict__
-    else:
-        globals = {}
     annotations = cls.__dict__.get("__annotations__", {})
 
     # Figure out if there are any fields which aren't type annotated properly
@@ -99,17 +102,18 @@ def _process_class(
         if name in __ignored_attributes:
             continue
         elif name not in annotations and not isinstance(value, type):
+            breakpoint()
             raise TypeError(f"Field {name!r} in {cls!r} is missing a type annotation")
 
     # Check if the annotation is supported
-    for name, type in annotations.items():
-        _type_spec = _determine_type(type)
+    for name, _type in annotations.items():
+        _type_spec = _determine_type(_type)
         if not _supported_type(_type_spec["base"]):
             raise TypeError(
                 f"Field {name!r} in {cls!r} is annotated with an unsupported type"
             )
         else:
-            fields[name] = _determine_type(type)
+            fields[name] = _determine_type(_type)
 
     setattr(cls, "_CFIELDS", fields)
 
