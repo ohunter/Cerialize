@@ -18,13 +18,13 @@ class endianness(Enum):
 def _supported_type(cls: type) -> bool:
     __baseline_types = {i8, i16, i32, i64, u8, u16, u32, u64, f16, f32, f64}
 
-    # Generic type annotated types do not match their own base classes
     if cls in __baseline_types:
         return True
 
-    fields = cls.__dict__.get("_CFIELDS")
+    fields: dict[str, _type_spesification] | None = cls.__dict__.get("_CFIELDS")
     if fields:
-        return all(_supported_type(v) for v in fields.values())
+        # Check that all the internal fields are supported
+        return all(_supported_type(v['base']) for v in fields.values())
     
     return False
 
@@ -55,7 +55,7 @@ def _process_class(cls: type, endianness: endianness , alignment: int , packed: 
     __ignored_attributes = {'__module__', '__annotations__', '__dict__', '__weakref__', '__doc__'}
 
     # Dictionaries have ordered insertion which comes to play here and does have an effect on the fields themselves
-    fields = {}
+    fields: dict[str, _type_spesification] = {}
 
     if cls.__module__ in sys.modules:
         globals = sys.modules[cls.__module__].__dict__
