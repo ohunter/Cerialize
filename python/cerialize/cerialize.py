@@ -3,13 +3,13 @@ from math import prod
 from typing import TypedDict, _GenericAlias
 import sys
 
-from .builtin_types import *
+import cerialize.builtin_types as builtin
 
 
 class _type_spesification(TypedDict):
     base: type
     shape: tuple[int] | None
-    modifiers: set[const]
+    modifiers: set[builtin.const]
 
 
 class endianness(Enum):
@@ -19,7 +19,20 @@ class endianness(Enum):
 
 
 def _supported_type(cls: type) -> bool:
-    __baseline_types = {i8, i16, i32, i64, u8, u16, u32, u64, f16, f32, f64}
+    __baseline_types = {
+        builtin.bool,
+        builtin.i8,
+        builtin.i16,
+        builtin.i32,
+        builtin.i64,
+        builtin.u8,
+        builtin.u16,
+        builtin.u32,
+        builtin.u64,
+        builtin.f16,
+        builtin.f32,
+        builtin.f64,
+    }
 
     if cls in __baseline_types:
         return True

@@ -2,9 +2,16 @@ import pytest
 import cerialize
 
 
+def test_declare_bool_fields():
+    class bool:
+        _: cerialize.bool
+
+    cerialize.cstruct(bool)
+
+
 def test_declare_signed_integer_fields():
     class i8:
-        _: cerialize.u8
+        _: cerialize.i8
 
     class i16:
         _: cerialize.i16
@@ -56,8 +63,11 @@ def test_declare_float_fields():
 
 
 def test_declare_array_fields():
+    class bool_array:
+        _: cerialize.bool[128]
+
     class i8_array:
-        _: cerialize.u8[128]
+        _: cerialize.i8[128]
 
     class i16_array:
         _: cerialize.i16[128]
@@ -89,6 +99,7 @@ def test_declare_array_fields():
     class f64_array:
         _: cerialize.f64[128]
 
+    cerialize.cstruct(bool_array)
     cerialize.cstruct(i8_array)
     cerialize.cstruct(i16_array)
     cerialize.cstruct(i32_array)
@@ -103,8 +114,11 @@ def test_declare_array_fields():
 
 
 def test_declare_const_field():
+    class const_bool:
+        _: cerialize.const[cerialize.bool]
+
     class const_i8:
-        _: cerialize.const[cerialize.u8]
+        _: cerialize.const[cerialize.i8]
 
     class const_i16:
         _: cerialize.const[cerialize.i16]
@@ -136,6 +150,7 @@ def test_declare_const_field():
     class const_f64:
         _: cerialize.const[cerialize.f64]
 
+    cerialize.cstruct(const_bool)
     cerialize.cstruct(const_i8)
     cerialize.cstruct(const_i16)
     cerialize.cstruct(const_i32)
@@ -150,8 +165,11 @@ def test_declare_const_field():
 
 
 def test_declare_const_array_field():
+    class const_bool_array:
+        _: cerialize.const[cerialize.bool[128]]
+
     class const_i8_array:
-        _: cerialize.const[cerialize.u8[128]]
+        _: cerialize.const[cerialize.i8[128]]
 
     class const_i16_array:
         _: cerialize.const[cerialize.i16[128]]
@@ -183,6 +201,7 @@ def test_declare_const_array_field():
     class const_f64_array:
         _: cerialize.const[cerialize.f64[128]]
 
+    cerialize.cstruct(const_bool_array)
     cerialize.cstruct(const_i8_array)
     cerialize.cstruct(const_i16_array)
     cerialize.cstruct(const_i32_array)

@@ -16,6 +16,7 @@ use pyo3::prelude::*;
 #[pyo3(name = "_cerialize")]
 fn cerialize(_py: Python, m: &PyModule) -> PyResult<()> {
     // m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    m.add_class::<types::Bool>()?;
     m.add_class::<types::Int8>()?;
     m.add_class::<types::Int16>()?;
     m.add_class::<types::Int32>()?;
