@@ -1,17 +1,18 @@
 import pytest
 import cerialize
 
+
 def test_declare_signed_integer_fields():
-    class i8():
+    class i8:
         _: cerialize.u8
-    
-    class i16():
+
+    class i16:
         _: cerialize.i16
 
-    class i32():
+    class i32:
         _: cerialize.i32
 
-    class i64():
+    class i64:
         _: cerialize.i64
 
     cerialize.cstruct(i8)
@@ -19,17 +20,18 @@ def test_declare_signed_integer_fields():
     cerialize.cstruct(i32)
     cerialize.cstruct(i64)
 
+
 def test_declare_unsigned_integer_fields():
-    class u8():
+    class u8:
         _: cerialize.u8
-    
-    class u16():
+
+    class u16:
         _: cerialize.u16
 
-    class u32():
+    class u32:
         _: cerialize.u32
 
-    class u64():
+    class u64:
         _: cerialize.u64
 
     cerialize.cstruct(u8)
@@ -37,54 +39,56 @@ def test_declare_unsigned_integer_fields():
     cerialize.cstruct(u32)
     cerialize.cstruct(u64)
 
+
 def test_declare_float_fields():
-    class f16():
+    class f16:
         _: cerialize.f16
 
-    class f32():
+    class f32:
         _: cerialize.f32
 
-    class f64():
+    class f64:
         _: cerialize.f64
 
     cerialize.cstruct(f16)
     cerialize.cstruct(f32)
     cerialize.cstruct(f64)
 
+
 def test_declare_array_fields():
-    class i8_array():
+    class i8_array:
         _: cerialize.u8[128]
 
-    class i16_array():
+    class i16_array:
         _: cerialize.i16[128]
 
-    class i32_array():
+    class i32_array:
         _: cerialize.i32[128]
 
-    class i64_array():
+    class i64_array:
         _: cerialize.i64[128]
 
-    class u8_array():
+    class u8_array:
         _: cerialize.u8[128]
 
-    class u16_array():
+    class u16_array:
         _: cerialize.u16[128]
 
-    class u32_array():
+    class u32_array:
         _: cerialize.u32[128]
 
-    class u64_array():
+    class u64_array:
         _: cerialize.u64[128]
 
-    class f16_array():
+    class f16_array:
         _: cerialize.f16[128]
 
-    class f32_array():
+    class f32_array:
         _: cerialize.f32[128]
 
-    class f64_array():
+    class f64_array:
         _: cerialize.f64[128]
-    
+
     cerialize.cstruct(i8_array)
     cerialize.cstruct(i16_array)
     cerialize.cstruct(i32_array)
@@ -97,40 +101,41 @@ def test_declare_array_fields():
     cerialize.cstruct(f32_array)
     cerialize.cstruct(f64_array)
 
+
 def test_declare_const_field():
-    class const_i8():
+    class const_i8:
         _: cerialize.const[cerialize.u8]
 
-    class const_i16():
+    class const_i16:
         _: cerialize.const[cerialize.i16]
 
-    class const_i32():
+    class const_i32:
         _: cerialize.const[cerialize.i32]
 
-    class const_i64():
+    class const_i64:
         _: cerialize.const[cerialize.i64]
 
-    class const_u8():
+    class const_u8:
         _: cerialize.const[cerialize.u8]
 
-    class const_u16():
+    class const_u16:
         _: cerialize.const[cerialize.u16]
 
-    class const_u32():
+    class const_u32:
         _: cerialize.const[cerialize.u32]
 
-    class const_u64():
+    class const_u64:
         _: cerialize.const[cerialize.u64]
 
-    class const_f16():
+    class const_f16:
         _: cerialize.const[cerialize.f16]
 
-    class const_f32():
+    class const_f32:
         _: cerialize.const[cerialize.f32]
 
-    class const_f64():
+    class const_f64:
         _: cerialize.const[cerialize.f64]
-    
+
     cerialize.cstruct(const_i8)
     cerialize.cstruct(const_i16)
     cerialize.cstruct(const_i32)
@@ -143,40 +148,41 @@ def test_declare_const_field():
     cerialize.cstruct(const_f32)
     cerialize.cstruct(const_f64)
 
+
 def test_declare_const_array_field():
-    class const_i8_array():
+    class const_i8_array:
         _: cerialize.const[cerialize.u8[128]]
 
-    class const_i16_array():
+    class const_i16_array:
         _: cerialize.const[cerialize.i16[128]]
 
-    class const_i32_array():
+    class const_i32_array:
         _: cerialize.const[cerialize.i32[128]]
 
-    class const_i64_array():
+    class const_i64_array:
         _: cerialize.const[cerialize.i64[128]]
 
-    class const_u8_array():
+    class const_u8_array:
         _: cerialize.const[cerialize.u8[128]]
 
-    class const_u16_array():
+    class const_u16_array:
         _: cerialize.const[cerialize.u16[128]]
 
-    class const_u32_array():
+    class const_u32_array:
         _: cerialize.const[cerialize.u32[128]]
 
-    class const_u64_array():
+    class const_u64_array:
         _: cerialize.const[cerialize.u64[128]]
 
-    class const_f16_array():
+    class const_f16_array:
         _: cerialize.const[cerialize.f16[128]]
 
-    class const_f32_array():
+    class const_f32_array:
         _: cerialize.const[cerialize.f32[128]]
 
-    class const_f64_array():
+    class const_f64_array:
         _: cerialize.const[cerialize.f64[128]]
-    
+
     cerialize.cstruct(const_i8_array)
     cerialize.cstruct(const_i16_array)
     cerialize.cstruct(const_i32_array)
@@ -189,11 +195,15 @@ def test_declare_const_array_field():
     cerialize.cstruct(const_f32_array)
     cerialize.cstruct(const_f64_array)
 
+
 def test_declare_nested_field():
-    class internal():
+    class nesting0:
         _: cerialize.i8
-    
-    class foo():
-        _: cerialize.cstruct(internal)
-    
-    cerialize.cstruct(foo)
+
+    class nesting1:
+        _: cerialize.cstruct(nesting0)
+
+    class nesting2:
+        _: cerialize.cstruct(nesting1)
+
+    cerialize.cstruct(nesting2)

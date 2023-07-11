@@ -5,15 +5,18 @@ import sys
 
 from .builtin_types import *
 
+
 class _type_spesification(TypedDict):
     base: type
     shape: tuple[int] | None
     modifiers: set[const]
 
+
 class endianness(Enum):
     native = 0
     little = 1
     big = 2
+
 
 def _supported_type(cls: type) -> bool:
     __baseline_types = {i8, i16, i32, i64, u8, u16, u32, u64, f16, f32, f64}
@@ -24,9 +27,10 @@ def _supported_type(cls: type) -> bool:
     fields: dict[str, _type_spesification] | None = cls.__dict__.get("_CFIELDS")
     if fields:
         # Check that all the internal fields are supported
-        return all(_supported_type(v['base']) for v in fields.values())
-    
+        return all(_supported_type(v["base"]) for v in fields.values())
+
     return False
+
 
 def _determine_type(cls: type) -> _type_spesification:
     # Check if type has nested arguments
@@ -37,22 +41,36 @@ def _determine_type(cls: type) -> _type_spesification:
         case (_type,) if isinstance(_type, (type, _GenericAlias)):
             # The type wraps another type which may also wrap something else
             spec = _determine_type(_type)
-            modifiers = spec.get('modifiers', set())
+            modifiers = spec.get("modifiers", set())
             modifiers.add(cls().__class__)
-            spec['modifiers'] = modifiers
+            spec["modifiers"] = modifiers
             return spec
         case [*vals] if all(isinstance(x, int) for x in vals):
             # The type has some dimensions that need to be considered
             spec = _determine_type(cls().__class__)
-            spec['shape'] = tuple(vals)
+            spec["shape"] = tuple(vals)
             return spec
         case value:
             # Uh oh... Something has gone wrong
             raise NotImplementedError(f"Unable to determine support for type {cls!r}")
 
-def _process_class(cls: type, endianness: endianness , alignment: int , packed: bool, serialize: bool, deserialize: bool):
+
+def _process_class(
+    cls: type,
+    endianness: endianness,
+    alignment: int,
+    packed: bool,
+    serialize: bool,
+    deserialize: bool,
+):
     # This function is heavily based on how dataclasses' solve the issue of type introspection
-    __ignored_attributes = {'__module__', '__annotations__', '__dict__', '__weakref__', '__doc__'}
+    __ignored_attributes = {
+        "__module__",
+        "__annotations__",
+        "__dict__",
+        "__weakref__",
+        "__doc__",
+    }
 
     # Dictionaries have ordered insertion which comes to play here and does have an effect on the fields themselves
     fields: dict[str, _type_spesification] = {}
@@ -73,8 +91,10 @@ def _process_class(cls: type, endianness: endianness , alignment: int , packed: 
     # Check if the annotation is supported
     for name, type in annotations.items():
         _type_spec = _determine_type(type)
-        if not _supported_type(_type_spec['base']):
-            raise TypeError(f"Field {name!r} in {cls!r} is annotated with an unsupported type")
+        if not _supported_type(_type_spec["base"]):
+            raise TypeError(
+                f"Field {name!r} in {cls!r} is annotated with an unsupported type"
+            )
         else:
             fields[name] = _determine_type(type)
 
@@ -84,12 +104,25 @@ def _process_class(cls: type, endianness: endianness , alignment: int , packed: 
 
     return cls
 
-def cstruct(cls: type | None =None, /, *, endianness: endianness =endianness.native, alignment: int =1, packed: bool=False, serialize: bool=False, deserialize: bool=False):
+
+def cstruct(
+    cls: type | None = None,
+    /,
+    *,
+    endianness: endianness = endianness.native,
+    alignment: int = 1,
+    packed: bool = False,
+    serialize: bool = False,
+    deserialize: bool = False,
+):
     """
     Uses PEP 526's __annotations__ to extract the type
     """
+
     def wrap(cls):
-        return _process_class(cls, endianness, alignment, packed, serialize, deserialize)
-    
+        return _process_class(
+            cls, endianness, alignment, packed, serialize, deserialize
+        )
+
     # Allows for use by both @cstruct and cstruct()
     return wrap if cls is None else wrap(cls)
