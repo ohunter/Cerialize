@@ -9,8 +9,8 @@ pub struct Int8 {
 #[pymethods]
 impl Int8 {
     #[new]
-    fn new(value: i8) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: i8::default()}
     }
 }
 
@@ -22,8 +22,8 @@ pub struct Int16 {
 #[pymethods]
 impl Int16 {
     #[new]
-    fn new(value: i16) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: i16::default()}
     }
 }
 
@@ -35,8 +35,8 @@ pub struct Int32 {
 #[pymethods]
 impl Int32 {
     #[new]
-    fn new(value: i32) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: i32::default()}
     }
 }
 
@@ -48,8 +48,8 @@ pub struct Int64 {
 #[pymethods]
 impl Int64 {
     #[new]
-    fn new(value: i64) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: i64::default()}
     }
 }
 
@@ -61,8 +61,8 @@ pub struct Uint8 {
 #[pymethods]
 impl Uint8 {
     #[new]
-    fn new(value: u8) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: u8::default()}
     }
 }
 
@@ -74,8 +74,8 @@ pub struct Uint16 {
 #[pymethods]
 impl Uint16 {
     #[new]
-    fn new(value: u16) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: u16::default()}
     }
 }
 
@@ -87,8 +87,8 @@ pub struct Uint32 {
 #[pymethods]
 impl Uint32 {
     #[new]
-    fn new(value: u32) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: u32::default()}
     }
 }
 
@@ -100,8 +100,8 @@ pub struct Uint64 {
 #[pymethods]
 impl Uint64 {
     #[new]
-    fn new(value: u64) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: u64::default()}
     }
 }
 
@@ -113,8 +113,8 @@ pub struct Float16 {
 #[pymethods]
 impl Float16 {
     #[new]
-    fn new(value: f32) -> Self {
-        Self{_inner: f16::from_f32(value)}
+    fn new() -> Self {
+        Self{_inner: f16::default()}
     }
 }
 
@@ -126,8 +126,8 @@ pub struct Float32 {
 #[pymethods]
 impl Float32 {
     #[new]
-    fn new(value: f32) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: f32::default()}
     }
 }
 
@@ -139,7 +139,7 @@ pub struct Float64 {
 #[pymethods]
 impl Float64 {
     #[new]
-    fn new(value: f64) -> Self {
-        Self{_inner: value}
+    fn new() -> Self {
+        Self{_inner: f64::default()}
     }
 }
