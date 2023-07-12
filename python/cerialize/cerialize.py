@@ -38,7 +38,9 @@ def _supported_type(cls: type) -> bool:
         return True
 
     fields: dict[str, _type_spesification] | None = cls.__dict__.get("_CFIELDS")
-    if fields:
+
+    # I don't think checking if this is None is the best idea, but it seems to fix an issue where the `_CFIELDS` class attribute is overwritten for some reason
+    if fields is not None:
         # Check that all the internal fields are supported
         return all(_supported_type(v["base"]) for v in fields.values())
 
@@ -56,12 +58,12 @@ def _determine_type(cls: type) -> _type_spesification:
             # The type wraps another type which may also wrap something else
             spec = _determine_type(_type)
             modifiers = spec.get("modifiers", set())
-            modifiers.add(cls().__class__)
+            modifiers.add(cls().__class__) # This is not ideal if the class has an expensive default constructor
             spec["modifiers"] = modifiers
             return spec
         case [*vals] if all(isinstance(x, int) for x in vals):
             # The type has some dimensions that need to be considered
-            spec = _determine_type(cls().__class__)
+            spec = _determine_type(cls().__class__) # This is not ideal if the class has an expensive default constructor
             spec["shape"] = tuple(vals)
             return spec
         case value:
@@ -125,7 +127,6 @@ def _process_class(
             fields[name] = _determine_type(_type)
 
     setattr(cls, "_CFIELDS", fields)
-    print(cls, fields)
 
     # TODO: Generate getters and delete setters for constant fields
 

@@ -224,6 +224,10 @@ def test_declare_nested_field():
 
     class nesting_single:
         _: cerialize.cstruct(inner)
+    
+    class nesting_multiple:
+        a: cerialize.cstruct(inner)
+        b: cerialize.cstruct(inner)
 
     class nesting_1d_array:
         _: cerialize.cstruct(inner[10])
@@ -232,5 +236,12 @@ def test_declare_nested_field():
         _: cerialize.cstruct(inner[10, 10])
 
     cerialize.cstruct(nesting_single)
+    cerialize.cstruct(nesting_multiple)
     cerialize.cstruct(nesting_1d_array)
     cerialize.cstruct(nesting_2d_array)
+
+def test_declare_empty_struct():
+    class empty:
+        pass
+
+    cerialize.cstruct(empty)
