@@ -2,6 +2,7 @@ import pytest
 import cerialize
 from typing import TypeVarTuple, Generic
 
+
 def test_declare_bool_fields():
     class bool:
         _: cerialize.bool

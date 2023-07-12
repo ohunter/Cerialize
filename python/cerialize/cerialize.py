@@ -1,6 +1,6 @@
 from enum import Enum
 from math import prod
-from typing import TypedDict, _GenericAlias
+from typing import TypedDict, _GenericAlias, Any
 import sys
 
 import cerialize.builtin_types as builtin
@@ -42,6 +42,7 @@ def _supported_type(cls: type) -> bool:
         # Check that all the internal fields are supported
         return all(_supported_type(v["base"]) for v in fields.values())
 
+    breakpoint()
     return False
 
 
@@ -68,6 +69,13 @@ def _determine_type(cls: type) -> _type_spesification:
             raise NotImplementedError(f"Unable to determine support for type {cls!r}")
 
 
+def _get_properties(cls: type) -> dict[str, Any]:
+    if isinstance(cls, _GenericAlias):
+        return cls.__origin__.__dict__
+
+    return cls.__dict__
+
+
 def _process_class(
     cls: type,
     endianness: endianness,
@@ -78,9 +86,7 @@ def _process_class(
 ):
     # This function is heavily based on how dataclasses' solve the issue of type introspection
     __ignored_attributes = {
-        "_inst",
-        "_name",
-        "_paramspec_tvars",
+        # Basic python attributes
         "__slots__",
         "__args__",
         "__parameters__",
@@ -91,6 +97,8 @@ def _process_class(
         "__weakref__",
         "__doc__",
         "__parameters__",
+        # Cerialized class attributes
+        "_CFIELDS",
     }
 
     # Dictionaries have ordered insertion which comes to play here and does have an effect on the fields themselves
@@ -98,10 +106,10 @@ def _process_class(
     annotations = cls.__dict__.get("__annotations__", {})
 
     # Figure out if there are any fields which aren't type annotated properly
-    for name, value in cls.__dict__.items():
+    for name, value in _get_properties(cls).items():
         if name in __ignored_attributes:
             continue
-        elif name not in annotations and not isinstance(value, type):
+        elif name not in annotations and not isinstance(value, (type, _GenericAlias)):
             breakpoint()
             raise TypeError(f"Field {name!r} in {cls!r} is missing a type annotation")
 
@@ -109,6 +117,7 @@ def _process_class(
     for name, _type in annotations.items():
         _type_spec = _determine_type(_type)
         if not _supported_type(_type_spec["base"]):
+            breakpoint()
             raise TypeError(
                 f"Field {name!r} in {cls!r} is annotated with an unsupported type"
             )
@@ -116,6 +125,7 @@ def _process_class(
             fields[name] = _determine_type(_type)
 
     setattr(cls, "_CFIELDS", fields)
+    print(cls, fields)
 
     # TODO: Generate getters and delete setters for constant fields
 
