@@ -1,7 +1,6 @@
 from enum import Enum
-from math import prod
 from typing import TypedDict, _GenericAlias, Any
-import sys
+from types import NoneType
 
 import cerialize.builtin_types as builtin
 
@@ -58,12 +57,16 @@ def _determine_type(cls: type) -> _type_spesification:
             # The type wraps another type which may also wrap something else
             spec = _determine_type(_type)
             modifiers = spec.get("modifiers", set())
-            modifiers.add(cls().__class__) # This is not ideal if the class has an expensive default constructor
+            modifiers.add(
+                cls().__class__
+            )  # This is not ideal if the class has an expensive default constructor
             spec["modifiers"] = modifiers
             return spec
         case [*vals] if all(isinstance(x, int) for x in vals):
             # The type has some dimensions that need to be considered
-            spec = _determine_type(cls().__class__) # This is not ideal if the class has an expensive default constructor
+            spec = _determine_type(
+                cls().__class__
+            )  # This is not ideal if the class has an expensive default constructor
             spec["shape"] = tuple(vals)
             return spec
         case value:
@@ -78,8 +81,40 @@ def _get_properties(cls: type) -> dict[str, Any]:
     return cls.__dict__
 
 
+def _create_fn(
+    name: str,
+    args: list[tuple[str, type]] = [],
+    return_type: type = NoneType,
+    body: list[str] = ["pass"],
+    globals: dict[str, Any] | None = None,
+    locals: dict[str, Any] | None = None,
+):
+    # This copied directly from dataclasses as I figured it'd work here as well
+    # Minor modifications have been made based on some assumptions I have made
+
+    if locals is None:
+        locals = {}
+
+    locals.update({f"_{arg_name}_type": arg_type for (arg_name, arg_type) in args})
+    locals["_return_type"] = return_type
+    return_annotation = "-> _return_type"
+
+    arg_txt = ", ".join([f"{arg_name}: _{arg_name}_type" for (arg_name, _) in args])
+    body = "\n".join(f"  {b}" for b in body)
+
+    # Compute the text of the entire function.
+    txt = f" def {name}({arg_txt}){return_annotation}:\n{body}"
+
+    local_vars = ", ".join(locals.keys())
+    txt = f"def __create_fn__({local_vars}):\n{txt}\n return {name}"
+    ns = {}
+    exec(txt, globals, ns)
+    return ns["__create_fn__"](**locals)
+
+
 def _process_class(
     cls: type,
+    generate_init: bool,
     endianness: endianness,
     alignment: int,
     packed: bool,
@@ -89,6 +124,7 @@ def _process_class(
     # This function is heavily based on how dataclasses' solve the issue of type introspection
     __ignored_attributes = {
         # Basic python attributes
+        "__init__",
         "__slots__",
         "__args__",
         "__parameters__",
@@ -128,7 +164,21 @@ def _process_class(
 
     setattr(cls, "_CFIELDS", fields)
 
+    # TODO: Figure out which fields have initializers
+    initialized: set[str] = set()
+
     # TODO: Generate getters and delete setters for constant fields
+
+    if generate_init:
+        init_fields = [
+            (name, _type)
+            for name, _type in annotations.items()
+            if name not in initialized
+        ]
+        init_fn = _create_fn("__init__", [("self", cls)] + init_fields, cls)
+        init_fn.__qualname__ = f"{cls.__qualname__}.{init_fn.__name__}"
+        if "__init__" not in cls.__dict__:
+            setattr(cls, "__init__", init_fn)
 
     return cls
 
@@ -137,6 +187,7 @@ def cstruct(
     cls: type | None = None,
     /,
     *,
+    init: bool = True,
     endianness: endianness = endianness.native,
     alignment: int = 1,
     packed: bool = False,
@@ -149,7 +200,7 @@ def cstruct(
 
     def wrap(cls):
         return _process_class(
-            cls, endianness, alignment, packed, serialize, deserialize
+            cls, init, endianness, alignment, packed, serialize, deserialize
         )
 
     # Allows for use by both @cstruct and cstruct()

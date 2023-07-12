@@ -2,6 +2,30 @@ import pytest
 import cerialize
 
 
+def test_compare_bool():
+    assert cerialize.bool() == False
+    assert cerialize.bool(False) == False
+    assert cerialize.bool(True) == True
+
+    assert cerialize.bool() != True
+    assert cerialize.bool(False) != True
+    assert cerialize.bool(True) != False
+
+    assert cerialize.bool() < True
+    assert cerialize.bool(False) < True
+
+    assert cerialize.bool() <= False
+    assert cerialize.bool(False) <= False
+    assert cerialize.bool(True) <= True
+
+    assert cerialize.bool(True) > False
+
+    assert cerialize.bool() >= False
+    assert cerialize.bool(False) >= False
+    assert cerialize.bool(True) >= False
+    assert cerialize.bool(True) >= True
+
+
 def test_compare_signed_integer_equal():
     assert cerialize.i8() == 0
     assert cerialize.i8() == cerialize.i8()

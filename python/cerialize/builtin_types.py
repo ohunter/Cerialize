@@ -14,7 +14,7 @@ class SupportsBool(Protocol):
 
 class bool(Generic[*Shape], _cerialize._bool):
     def __new__(cls, *args) -> "bool":
-        value = next(iter(args), builtins.bool())
+        value = next(iter(args), builtins.bool()).__bool__()
         return super().__new__(cls, value)
 
     @overload

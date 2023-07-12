@@ -2,6 +2,8 @@ import pytest
 import cerialize
 from typing import TypeVarTuple, Generic
 
+Shape = TypeVarTuple("Shape")
+
 
 def test_declare_bool_fields():
     class bool:
@@ -217,14 +219,12 @@ def test_declare_const_array_field():
 
 
 def test_declare_nested_field():
-    Shape = TypeVarTuple("Shape")
-
     class inner(Generic[*Shape]):
         _: cerialize.i8
 
     class nesting_single:
         _: cerialize.cstruct(inner)
-    
+
     class nesting_multiple:
         a: cerialize.cstruct(inner)
         b: cerialize.cstruct(inner)
@@ -239,6 +239,7 @@ def test_declare_nested_field():
     cerialize.cstruct(nesting_multiple)
     cerialize.cstruct(nesting_1d_array)
     cerialize.cstruct(nesting_2d_array)
+
 
 def test_declare_empty_struct():
     class empty:
