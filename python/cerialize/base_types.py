@@ -1190,7 +1190,3 @@ class f64(Generic[*Shape], _cerialize._f64):
     def __ge__(self, __value) -> builtins.bool:
         value = f64(float(__value)) if not isinstance(__value, f64) else __value
         return super().__ge__(value)
-
-
-class const(Generic[T]):
-    pass

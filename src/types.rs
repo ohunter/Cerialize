@@ -1,7 +1,8 @@
-use pyo3::{prelude::*, pyclass::CompareOp};
 use half::f16;
+use pyo3::types::PyType;
+use pyo3::{prelude::*, pyclass::CompareOp};
 
-#[pyclass(name="_bool", subclass, weakref)]
+#[pyclass(name = "_bool", subclass, weakref)]
 pub struct Bool(bool);
 
 #[pymethods]
@@ -26,9 +27,14 @@ impl Bool {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_i8", subclass, weakref)]
+#[pyclass(name = "_i8", subclass, weakref)]
 pub struct Int8(i8);
 
 #[pymethods]
@@ -53,9 +59,14 @@ impl Int8 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_i16", subclass, weakref)]
+#[pyclass(name = "_i16", subclass, weakref)]
 pub struct Int16(i16);
 
 #[pymethods]
@@ -80,9 +91,14 @@ impl Int16 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_i32", subclass, weakref)]
+#[pyclass(name = "_i32", subclass, weakref)]
 pub struct Int32(i32);
 
 #[pymethods]
@@ -107,9 +123,14 @@ impl Int32 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_i64", subclass, weakref)]
+#[pyclass(name = "_i64", subclass, weakref)]
 pub struct Int64(i64);
 
 #[pymethods]
@@ -134,9 +155,14 @@ impl Int64 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_u8", subclass, weakref)]
+#[pyclass(name = "_u8", subclass, weakref)]
 pub struct Uint8(u8);
 
 #[pymethods]
@@ -161,9 +187,14 @@ impl Uint8 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_u16", subclass, weakref)]
+#[pyclass(name = "_u16", subclass, weakref)]
 pub struct Uint16(u16);
 
 #[pymethods]
@@ -188,9 +219,14 @@ impl Uint16 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_u32", subclass, weakref)]
+#[pyclass(name = "_u32", subclass, weakref)]
 pub struct Uint32(u32);
 
 #[pymethods]
@@ -215,9 +251,14 @@ impl Uint32 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_u64", subclass, weakref)]
+#[pyclass(name = "_u64", subclass, weakref)]
 pub struct Uint64(u64);
 
 #[pymethods]
@@ -242,9 +283,14 @@ impl Uint64 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_f16", subclass, weakref)]
+#[pyclass(name = "_f16", subclass, weakref)]
 pub struct Float16(f16);
 
 #[pymethods]
@@ -269,9 +315,14 @@ impl Float16 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_f32", subclass, weakref)]
+#[pyclass(name = "_f32", subclass, weakref)]
 pub struct Float32(f32);
 
 #[pymethods]
@@ -296,9 +347,14 @@ impl Float32 {
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
     }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
+    }
 }
 
-#[pyclass(name="_f64", subclass, weakref)]
+#[pyclass(name = "_f64", subclass, weakref)]
 pub struct Float64(f64);
 
 #[pymethods]
@@ -322,5 +378,10 @@ impl Float64 {
             CompareOp::Gt => Ok(self.0 > other.0),
             CompareOp::Ge => Ok(self.0 >= other.0),
         }
+    }
+
+    #[classmethod]
+    fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
+        Ok(std::mem::size_of::<Self>())
     }
 }
