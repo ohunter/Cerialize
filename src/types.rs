@@ -1,7 +1,7 @@
 use half::f16;
 use pyo3::exceptions::PyAttributeError;
-use pyo3::types::{PyDict, PyLong, PyString, PyType};
 use pyo3::types::PyBytes;
+use pyo3::types::{PyDict, PyLong, PyString, PyType};
 use pyo3::{prelude::*, pyclass::CompareOp};
 use std::cell::RefCell;
 
@@ -23,7 +23,7 @@ pub struct Big();
 pub struct Little();
 
 #[derive(FromPyObject)]
-pub enum Endianness{
+pub enum Endianness {
     #[pyo3(transparent)]
     Native(Native),
     #[pyo3(transparent)]
@@ -80,6 +80,7 @@ impl CStruct {
 impl CStruct {
     #[new]
     fn new(buffer: &[u8]) -> Self {
+        println!("{:?}", buffer);
         Self {
             buffer: RefCell::new(Vec::from(buffer)),
         }
@@ -127,34 +128,82 @@ impl CStruct {
 }
 
 #[pyclass(name = "_bool", subclass, weakref)]
-pub struct Bool(bool);
+pub struct Bool {
+    buffer: RefCell<[u8; std::mem::size_of::<bool>()]>,
+    endianness: Endianness,
+}
+
+impl Bool {
+    // type DataType = bool;
+
+    const PACKED_SIZE: usize = std::mem::size_of::<bool>();
+
+    fn to_bytes(_endianness: &Endianness, value: bool) -> [u8; Self::PACKED_SIZE] {
+        unsafe { std::mem::transmute_copy::<bool, [u8; Self::PACKED_SIZE]>(&value) }
+    }
+
+    fn from_bytes(_endianness: &Endianness, buffer: &RefCell<[u8; Self::PACKED_SIZE]>) -> bool {
+        unsafe { std::mem::transmute_copy::<[u8; Self::PACKED_SIZE], bool>(&buffer.borrow()) }
+    }
+
+    fn value(&self) -> bool {
+        Self::from_bytes(&self.endianness, &self.buffer)
+    }
+}
 
 #[pymethods]
 impl Bool {
     #[new]
-    fn new(value: bool) -> Self {
-        Self(value)
+    fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
+        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        match value {
+            Some(value) => {
+                if let Ok(literal) = value.downcast::<PyLong>() {
+                    let literal = literal.extract::<bool>().unwrap();
+                    Self {
+                        buffer: RefCell::new(Self::to_bytes(&endianness, literal)),
+                        endianness,
+                    }
+                } else if let Ok(buffer) = value.downcast::<PyBytes>() {
+                    let buffer = buffer.extract::<&[u8]>().unwrap();
+                    Self {
+                        buffer: RefCell::new(*buffer_alias::<{ Self::PACKED_SIZE }>(buffer)),
+                        endianness,
+                    }
+                } else {
+                    Self {
+                        buffer: RefCell::new(Self::to_bytes(&endianness, bool::default())),
+                        endianness,
+                    }
+                }
+            }
+            None => Self {
+                buffer: RefCell::new(Self::to_bytes(&endianness, bool::default())),
+                endianness,
+            },
+        }
     }
 
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
-        Ok(format!("{class_name}({})", slf.borrow().0))
+        let value = slf.borrow().value();
+        Ok(format!("{class_name}({})", value))
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
-            CompareOp::Lt => Ok(self.0 < other.0),
-            CompareOp::Le => Ok(self.0 <= other.0),
-            CompareOp::Eq => Ok(self.0 == other.0),
-            CompareOp::Ne => Ok(self.0 != other.0),
-            CompareOp::Gt => Ok(self.0 > other.0),
-            CompareOp::Ge => Ok(self.0 >= other.0),
+            CompareOp::Lt => Ok(self.value() < other.value()),
+            CompareOp::Le => Ok(self.value() <= other.value()),
+            CompareOp::Eq => Ok(self.value() == other.value()),
+            CompareOp::Ne => Ok(self.value() != other.value()),
+            CompareOp::Gt => Ok(self.value() > other.value()),
+            CompareOp::Ge => Ok(self.value() >= other.value()),
         }
     }
 
     #[classmethod]
     fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
-        Ok(std::mem::size_of::<Self>())
+        Ok(Self::PACKED_SIZE)
     }
 }
 
@@ -255,14 +304,37 @@ impl Int32 {
 }
 
 #[pyclass(name = "_i64", subclass, weakref)]
-pub struct Int64{
+pub struct Int64 {
     buffer: RefCell<[u8; std::mem::size_of::<i64>()]>,
     endianness: Endianness,
 }
 
-#[pymethods]
 impl Int64 {
     const PACKED_SIZE: usize = std::mem::size_of::<i64>();
+
+    fn to_bytes(endianness: &Endianness, value: i64) -> [u8; Self::PACKED_SIZE] {
+        match endianness {
+            Endianness::Native(_) => value.to_ne_bytes(),
+            Endianness::Big(_) => value.to_be_bytes(),
+            Endianness::Little(_) => value.to_le_bytes(),
+        }
+    }
+
+    fn from_bytes(endianness: &Endianness, buffer: &RefCell<[u8; Self::PACKED_SIZE]>) -> i64 {
+        match endianness {
+            Endianness::Native(_) => i64::from_ne_bytes(*buffer.borrow()),
+            Endianness::Big(_) => i64::from_be_bytes(*buffer.borrow()),
+            Endianness::Little(_) => i64::from_le_bytes(*buffer.borrow()),
+        }
+    }
+
+    fn value(&self) -> i64 {
+        Self::from_bytes(&self.endianness, &self.buffer)
+    }
+}
+
+#[pymethods]
+impl Int64 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
         let endianness = endianness.unwrap_or(Endianness::Native(Native()));
@@ -270,34 +342,48 @@ impl Int64 {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
                     let literal = literal.extract::<i64>().unwrap();
-                    Self { buffer: RefCell::new([0_u8; std::mem::size_of::<i64>()]), endianness}
+                    Self {
+                        buffer: RefCell::new(Self::to_bytes(&endianness, literal)),
+                        endianness,
+                    }
                 } else if let Ok(buffer) = value.downcast::<PyBytes>() {
                     let buffer = buffer.extract::<&[u8]>().unwrap();
-                    Self{buffer: RefCell::new(*buffer_alias::<{std::mem::size_of::<i64>()}>(buffer)), endianness}
-                }
-                else {
-                    Self { buffer: RefCell::new([0_u8; std::mem::size_of::<i64>()]), endianness}
+                    Self {
+                        buffer: RefCell::new(*buffer_alias::<{ std::mem::size_of::<i64>() }>(
+                            buffer,
+                        )),
+                        endianness,
+                    }
+                } else {
+                    Self {
+                        buffer: RefCell::new(Self::to_bytes(&endianness, 0)),
+                        endianness,
+                    }
                 }
             }
-            None => Self { buffer: RefCell::new([0_u8; std::mem::size_of::<i64>()]), endianness}
+            None => Self {
+                buffer: RefCell::new(Self::to_bytes(&endianness, 0)),
+                endianness,
+            },
         }
     }
 
-    // fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
-    //     let class_name: &str = slf.get_type().name()?;
-    //     Ok(format!("{class_name}({})", slf.borrow().0))
-    // }
+    fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
+        let class_name: &str = slf.get_type().name()?;
+        let value = slf.borrow().value();
+        Ok(format!("{class_name}({})", value))
+    }
 
-    // fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
-    //     match op {
-    //         CompareOp::Lt => Ok(self.0 < other.0),
-    //         CompareOp::Le => Ok(self.0 <= other.0),
-    //         CompareOp::Eq => Ok(self.0 == other.0),
-    //         CompareOp::Ne => Ok(self.0 != other.0),
-    //         CompareOp::Gt => Ok(self.0 > other.0),
-    //         CompareOp::Ge => Ok(self.0 >= other.0),
-    //     }
-    // }
+    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+        match op {
+            CompareOp::Lt => Ok(self.value() < other.value()),
+            CompareOp::Le => Ok(self.value() <= other.value()),
+            CompareOp::Eq => Ok(self.value() == other.value()),
+            CompareOp::Ne => Ok(self.value() != other.value()),
+            CompareOp::Gt => Ok(self.value() > other.value()),
+            CompareOp::Ge => Ok(self.value() >= other.value()),
+        }
+    }
 
     #[classmethod]
     fn __packed_size__(_cls: &PyType) -> PyResult<usize> {
