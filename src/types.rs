@@ -11,7 +11,7 @@ fn buffer_alias<const N: usize>(buffer: &[u8]) -> &[u8; N] {
 }
 
 #[pyclass(module = "primitives", frozen, weakref)]
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Native();
 
 #[pymethods]
@@ -34,7 +34,7 @@ impl Native {
 }
 
 #[pyclass(module = "primitives", frozen, weakref)]
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Big();
 
 #[pymethods]
@@ -57,7 +57,7 @@ impl Big {
 }
 
 #[pyclass(module = "primitives", frozen, weakref)]
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Little();
 
 #[pymethods]
@@ -79,7 +79,7 @@ impl Little {
     }
 }
 
-#[derive(FromPyObject)]
+#[derive(FromPyObject, Copy, Clone)]
 pub enum Endianness {
     #[pyo3(transparent)]
     Native(Native),
@@ -89,17 +89,30 @@ pub enum Endianness {
     Little(Little),
 }
 
+impl IntoPy<Py<pyo3::PyAny>> for Endianness {
+    fn into_py(self, py: Python<'_>) -> Py<pyo3::PyAny> {
+        match self {
+            Endianness::Native(value) => Py::new(py, value).unwrap().as_ref(py).into(),
+            Endianness::Big(value) => Py::new(py, value).unwrap().as_ref(py).into(),
+            Endianness::Little(value) => Py::new(py, value).unwrap().as_ref(py).into(),
+        }
+    }
+}
+
 #[pyclass(module = "primitives", name = "_cstruct", subclass, weakref)]
 pub struct CStruct {
     buffer: RefCell<Vec<u8>>,
+    endianness: Endianness,
 }
 
 #[pymethods]
 impl CStruct {
     #[new]
-    fn new(buffer: &[u8]) -> Self {
+    fn new(buffer: &[u8], endianness: Option<Endianness>) -> Self {
+        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
         Self {
             buffer: RefCell::new(Vec::from(buffer)),
+            endianness,
         }
     }
 
@@ -176,7 +189,7 @@ impl CStruct {
             (
                 attr_type,
                 &slf.borrow().buffer.borrow()[buffer_offset..buffer_offset + type_size],
-                // TODO: Figure out how to pass the current endianness to the newly constructed value
+                Some(slf.borrow().endianness),
             ),
         )?)
     }
