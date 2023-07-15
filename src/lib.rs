@@ -6,7 +6,6 @@ use pyo3::prelude::*;
 #[pymodule]
 #[pyo3(name = "_cerialize")]
 fn cerialize(_py: Python, m: &PyModule) -> PyResult<()> {
-    // m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
     m.add_class::<types::Bool>()?;
     m.add_class::<types::Int8>()?;
     m.add_class::<types::Int16>()?;
@@ -22,8 +21,9 @@ fn cerialize(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<types::Float32>()?;
     m.add_class::<types::Float64>()?;
     m.add_class::<types::CStruct>()?;
-    m.add_class::<types::Native>()?;
-    m.add_class::<types::Big>()?;
-    m.add_class::<types::Little>()?;
+
+    m.add("NativeEndian", types::NativeEndian())?;
+    m.add("BigEndian", types::BigEndian())?;
+    m.add("LittleEndian", types::LittleEndian())?;
     Ok(())
 }

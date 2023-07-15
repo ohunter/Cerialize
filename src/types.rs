@@ -10,12 +10,12 @@ fn buffer_alias<const N: usize>(buffer: &[u8]) -> &[u8; N] {
     buffer.try_into().expect("slice with incorrect length")
 }
 
-#[pyclass(module = "primitives", frozen, weakref)]
+#[pyclass(module = "_cerialize", frozen, weakref)]
 #[derive(Clone, Copy)]
-pub struct Native();
+pub struct NativeEndian();
 
 #[pymethods]
-impl Native {
+impl NativeEndian {
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
         Ok(format!("{class_name}"))
@@ -33,12 +33,12 @@ impl Native {
     }
 }
 
-#[pyclass(module = "primitives", frozen, weakref)]
+#[pyclass(module = "_cerialize", frozen, weakref)]
 #[derive(Clone, Copy)]
-pub struct Big();
+pub struct BigEndian();
 
 #[pymethods]
-impl Big {
+impl BigEndian {
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
         Ok(format!("{class_name}"))
@@ -56,12 +56,12 @@ impl Big {
     }
 }
 
-#[pyclass(module = "primitives", frozen, weakref)]
+#[pyclass(module = "_cerialize", frozen, weakref)]
 #[derive(Clone, Copy)]
-pub struct Little();
+pub struct LittleEndian();
 
 #[pymethods]
-impl Little {
+impl LittleEndian {
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
         Ok(format!("{class_name}"))
@@ -82,11 +82,11 @@ impl Little {
 #[derive(FromPyObject, Copy, Clone)]
 pub enum Endianness {
     #[pyo3(transparent)]
-    Native(Native),
+    Native(NativeEndian),
     #[pyo3(transparent)]
-    Big(Big),
+    Big(BigEndian),
     #[pyo3(transparent)]
-    Little(Little),
+    Little(LittleEndian),
 }
 
 impl IntoPy<Py<pyo3::PyAny>> for Endianness {
@@ -99,7 +99,7 @@ impl IntoPy<Py<pyo3::PyAny>> for Endianness {
     }
 }
 
-#[pyclass(module = "primitives", name = "_cstruct", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_cstruct", subclass, weakref)]
 pub struct CStruct {
     buffer: RefCell<Vec<u8>>,
     endianness: Endianness,
@@ -109,7 +109,7 @@ pub struct CStruct {
 impl CStruct {
     #[new]
     fn new(buffer: &[u8], endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         Self {
             buffer: RefCell::new(Vec::from(buffer)),
             endianness,
@@ -195,7 +195,7 @@ impl CStruct {
     }
 }
 
-#[pyclass(module = "primitives", name = "_bool", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_bool", subclass, weakref)]
 pub struct Bool {
     buffer: RefCell<[u8; std::mem::size_of::<bool>()]>,
     endianness: Endianness,
@@ -223,7 +223,7 @@ impl Bool {
 impl Bool {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -275,7 +275,7 @@ impl Bool {
     }
 }
 
-#[pyclass(module = "primitives", name = "_i8", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_i8", subclass, weakref)]
 pub struct Int8 {
     buffer: RefCell<[u8; std::mem::size_of::<i8>()]>,
     endianness: Endianness,
@@ -311,7 +311,7 @@ impl Int8 {
 impl Int8 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -365,7 +365,7 @@ impl Int8 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_i16", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_i16", subclass, weakref)]
 pub struct Int16 {
     buffer: RefCell<[u8; std::mem::size_of::<i16>()]>,
     endianness: Endianness,
@@ -401,7 +401,7 @@ impl Int16 {
 impl Int16 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -455,7 +455,7 @@ impl Int16 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_i32", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_i32", subclass, weakref)]
 pub struct Int32 {
     buffer: RefCell<[u8; std::mem::size_of::<i32>()]>,
     endianness: Endianness,
@@ -491,7 +491,7 @@ impl Int32 {
 impl Int32 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -545,7 +545,7 @@ impl Int32 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_i64", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_i64", subclass, weakref)]
 pub struct Int64 {
     buffer: RefCell<[u8; std::mem::size_of::<i64>()]>,
     endianness: Endianness,
@@ -581,7 +581,7 @@ impl Int64 {
 impl Int64 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -635,7 +635,7 @@ impl Int64 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_i128", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_i128", subclass, weakref)]
 pub struct Int128 {
     buffer: RefCell<[u8; std::mem::size_of::<i128>()]>,
     endianness: Endianness,
@@ -671,7 +671,7 @@ impl Int128 {
 impl Int128 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -725,7 +725,7 @@ impl Int128 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_u8", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_u8", subclass, weakref)]
 pub struct Uint8 {
     buffer: RefCell<[u8; std::mem::size_of::<u8>()]>,
     endianness: Endianness,
@@ -761,7 +761,7 @@ impl Uint8 {
 impl Uint8 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -815,7 +815,7 @@ impl Uint8 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_u16", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_u16", subclass, weakref)]
 pub struct Uint16 {
     buffer: RefCell<[u8; std::mem::size_of::<u16>()]>,
     endianness: Endianness,
@@ -851,7 +851,7 @@ impl Uint16 {
 impl Uint16 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -905,7 +905,7 @@ impl Uint16 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_u32", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_u32", subclass, weakref)]
 pub struct Uint32 {
     buffer: RefCell<[u8; std::mem::size_of::<u32>()]>,
     endianness: Endianness,
@@ -941,7 +941,7 @@ impl Uint32 {
 impl Uint32 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -995,7 +995,7 @@ impl Uint32 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_u64", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_u64", subclass, weakref)]
 pub struct Uint64 {
     buffer: RefCell<[u8; std::mem::size_of::<u64>()]>,
     endianness: Endianness,
@@ -1031,7 +1031,7 @@ impl Uint64 {
 impl Uint64 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -1085,7 +1085,7 @@ impl Uint64 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_u128", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_u128", subclass, weakref)]
 pub struct Uint128 {
     buffer: RefCell<[u8; std::mem::size_of::<u128>()]>,
     endianness: Endianness,
@@ -1121,7 +1121,7 @@ impl Uint128 {
 impl Uint128 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -1175,7 +1175,7 @@ impl Uint128 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_f16", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_f16", subclass, weakref)]
 pub struct Float16 {
     buffer: RefCell<[u8; std::mem::size_of::<f16>()]>,
     endianness: Endianness,
@@ -1211,7 +1211,7 @@ impl Float16 {
 impl Float16 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -1265,7 +1265,7 @@ impl Float16 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_f32", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_f32", subclass, weakref)]
 pub struct Float32 {
     buffer: RefCell<[u8; std::mem::size_of::<f32>()]>,
     endianness: Endianness,
@@ -1301,7 +1301,7 @@ impl Float32 {
 impl Float32 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
@@ -1355,7 +1355,7 @@ impl Float32 {
     }
 }
 
-#[pyclass(module = "primitives", name = "_f64", subclass, weakref)]
+#[pyclass(module = "_cerialize", name = "_f64", subclass, weakref)]
 pub struct Float64 {
     buffer: RefCell<[u8; std::mem::size_of::<f64>()]>,
     endianness: Endianness,
@@ -1391,7 +1391,7 @@ impl Float64 {
 impl Float64 {
     #[new]
     fn new(value: Option<&PyAny>, endianness: Option<Endianness>) -> Self {
-        let endianness = endianness.unwrap_or(Endianness::Native(Native()));
+        let endianness = endianness.unwrap_or(Endianness::Native(NativeEndian()));
         match value {
             Some(value) => {
                 if let Ok(literal) = value.downcast::<PyLong>() {
