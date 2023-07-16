@@ -22,6 +22,8 @@ fn cerialize(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<types::Float64>()?;
     m.add_class::<types::CStruct>()?;
 
+    m.add_class::<types::PyShaped>()?;
+
     m.add("NativeEndian", types::NativeEndian())?;
     m.add("BigEndian", types::BigEndian())?;
     m.add("LittleEndian", types::LittleEndian())?;
