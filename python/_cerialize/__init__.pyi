@@ -26,6 +26,7 @@ class Shaped:
     def __class_getitem__(cls, *params: int): ...
 
 class cstruct(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         buffer: Optional[bytes] = None,
@@ -39,6 +40,7 @@ class cstruct(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class boolean(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(1)] | bool] = None,
@@ -55,6 +57,7 @@ class boolean(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class i8(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(1)] | int] = None,
@@ -71,6 +74,7 @@ class i8(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class i16(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(2)] | int] = None,
@@ -87,6 +91,7 @@ class i16(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class i32(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(4)] | int] = None,
@@ -103,6 +108,7 @@ class i32(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class i64(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(8)] | int] = None,
@@ -119,6 +125,7 @@ class i64(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class i128(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(16)] | int] = None,
@@ -135,6 +142,7 @@ class i128(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class u8(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(1)] | int] = None,
@@ -151,6 +159,7 @@ class u8(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class u16(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(2)] | int] = None,
@@ -167,6 +176,7 @@ class u16(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class u32(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(4)] | int] = None,
@@ -183,6 +193,7 @@ class u32(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class u64(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(8)] | int] = None,
@@ -199,6 +210,7 @@ class u64(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class u128(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(16)] | int] = None,
@@ -215,6 +227,7 @@ class u128(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class f16(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(2)] | float] = None,
@@ -231,6 +244,7 @@ class f16(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class f32(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(4)] | float] = None,
@@ -247,6 +261,7 @@ class f32(Shaped[*Shape]):
     def __packed_size__(cls) -> int: ...
 
 class f64(Shaped[*Shape]):
+    _SHAPE: Optional[tuple[int]]
     def __new__(
         cls,
         value: Optional[Annotated[SupportsBytes, BufferLen(8)] | float] = None,
