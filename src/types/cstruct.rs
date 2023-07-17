@@ -1,7 +1,7 @@
 use super::{Endianness, NativeEndian, PyShaped};
 use pyo3::exceptions::PyAttributeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyString, PyType};
+use pyo3::types::{PyDict, PyType};
 use std::cell::RefCell;
 
 #[pyclass(module = "_cerialize", name = "cstruct", subclass, weakref, extends=PyShaped)]
@@ -30,7 +30,7 @@ impl CStruct {
         // This assumes that there are no padding bytes
         // That should probably be fixed at some point
         let fields = cls.getattr("_CFIELDS")?.downcast::<PyDict>()?;
-        for (_key, value) in fields {
+        for (_, value) in fields {
             capacity += value.call_method0("__packed_size__")?.extract::<usize>()?;
         }
         Ok(capacity)
@@ -43,8 +43,8 @@ impl CStruct {
         let offset = fields
             .iter()
             .map_while(|(key, value)| {
-                let cur = key.downcast::<PyString>().unwrap();
-                match cur.to_string() == attr {
+                let cur = key.extract::<&str>().unwrap();
+                match cur == attr {
                     false => Some(
                         value
                             .call_method0("__packed_size__")

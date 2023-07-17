@@ -30,6 +30,7 @@ dependencies = [
  "bincode",
  "half",
  "itertools",
+ "once_cell",
  "pyo3",
 ]
 
