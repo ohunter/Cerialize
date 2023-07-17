@@ -9,7 +9,7 @@ pub struct NativeEndian();
 impl NativeEndian {
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
-        Ok(format!("{class_name}"))
+        Ok(class_name.to_string())
     }
 
     fn __richcmp__(&self, _other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -32,7 +32,7 @@ pub struct BigEndian();
 impl BigEndian {
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
-        Ok(format!("{class_name}"))
+        Ok(class_name.to_string())
     }
 
     fn __richcmp__(&self, _other: &Self, op: CompareOp) -> PyResult<bool> {
@@ -55,7 +55,7 @@ pub struct LittleEndian();
 impl LittleEndian {
     fn __repr__(slf: &PyCell<Self>) -> PyResult<String> {
         let class_name: &str = slf.get_type().name()?;
-        Ok(format!("{class_name}"))
+        Ok(class_name.to_string())
     }
 
     fn __richcmp__(&self, _other: &Self, op: CompareOp) -> PyResult<bool> {

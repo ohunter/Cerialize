@@ -87,11 +87,11 @@ impl Bool {
 
     fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
         match op {
-            CompareOp::Lt => Ok(self.value() < other.value()),
+            CompareOp::Lt => Ok(!self.value() & other.value()),
             CompareOp::Le => Ok(self.value() <= other.value()),
             CompareOp::Eq => Ok(self.value() == other.value()),
             CompareOp::Ne => Ok(self.value() != other.value()),
-            CompareOp::Gt => Ok(self.value() > other.value()),
+            CompareOp::Gt => Ok(self.value() & !other.value()),
             CompareOp::Ge => Ok(self.value() >= other.value()),
         }
     }

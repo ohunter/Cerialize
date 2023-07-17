@@ -65,7 +65,6 @@ impl Hash for TypeCacheKey {
                 .as_ref(py)
                 .iter()
                 .map(|val| val.extract::<usize>())
-                .into_iter()
                 .collect::<PyResult<Vec<usize>>>()
                 .unwrap()
                 .hash(state);
@@ -74,6 +73,7 @@ impl Hash for TypeCacheKey {
 }
 
 #[pyclass(module = "_cerialize", name = "Shaped", subclass)]
+#[derive(Default)]
 pub struct PyShaped();
 
 impl PyShaped {
@@ -129,7 +129,7 @@ def wrapper(fn):
 impl PyShaped {
     #[new]
     pub fn new() -> Self {
-        PyShaped()
+        PyShaped::default()
     }
 
     #[pyo3(signature = (*args))]
@@ -148,7 +148,6 @@ impl PyShaped {
                 .downcast::<PyTuple>()?
                 .into_iter()
                 .map(|value| value.extract::<usize>())
-                .into_iter()
                 .collect::<Vec<_>>(),
             (false, true) => {
                 vec![shape_arg.extract::<usize>()]
@@ -158,8 +157,6 @@ impl PyShaped {
         .into_iter()
         .collect::<Result<Vec<_>, _>>()?;
 
-        println!("__class_getitem__(cls={}, args={})", cls, args);
-
         let cache_key = TypeCacheKey(
             cls.into(),
             Into::<Py<PyTuple>>::into(PyTuple::new(py, &shape)),
@@ -168,21 +165,18 @@ impl PyShaped {
         // Cache the generated type to avoid issues with overwriting attributes
         if !TYPE_CACHE.read().unwrap().contains_key(&cache_key) {
             let types = PyModule::import(py, "types").unwrap();
-
             let class_name = format!("{}[{}]", cls.name().unwrap(), shape.iter().format(","));
-
             let packed_size_fn = Self::wrap_function(
                 py,
                 |args: &PyTuple, _kwargs: Option<&PyDict>| -> PyResult<_> {
                     let cls = args.get_item(0)?.downcast::<PyType>()?;
-                    let packed_size = Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+                    Python::with_gil(|py| -> PyResult<Py<PyAny>> {
                         Ok(Self::derived_packed_size(cls)?.to_object(py))
-                    });
-                    packed_size
+                    })
                 },
             )?;
-
             let kwds: HashMap<&str, &pyo3::PyAny> = HashMap::from_iter([
+                ("module", cls.getattr("__module__")?),
                 ("origin", cls.into()),
                 ("shape", PyTuple::new(py, &shape).into()),
                 ("packed_size_fn", packed_size_fn.as_ref(py)),
@@ -208,23 +202,23 @@ impl PyShaped {
     }
 
     #[classmethod]
-    #[pyo3(signature = (*args, origin, packed_size_fn, shape = None, **kwargs))]
+    #[pyo3(signature = (*args, module, origin, packed_size_fn, shape = None, **kwargs))]
     fn __init_subclass__(
         cls: &PyType,
         args: &PyTuple,
+        module: &PyAny,
         origin: &PyAny,
         packed_size_fn: &PyAny,
         shape: Option<&PyTuple>,
         kwargs: Option<&PyDict>,
     ) -> PyResult<()> {
-        println!(
-            "__init_subclass__(cls={}, args={:?}, shape={:?}, kwargs={:?})",
-            cls, args, shape, kwargs
-        );
         cls.py_super()?
             .call_method("__init_subclass__", args, kwargs)?;
 
         packed_size_fn.setattr("__name__", "__packed_size__")?;
+        // This isn't working at the moment
+        // It may be due to the fact that this is a kinda bad way of doing it
+        // Either that or there is a bug in Pyo3
         packed_size_fn.setattr(
             "__qualname__",
             format!(
@@ -233,6 +227,7 @@ impl PyShaped {
             ),
         )?;
 
+        cls.setattr("__module__", module)?;
         cls.setattr("__origin__", origin)?;
         cls.setattr("__packed_size__", packed_size_fn)?;
         cls.setattr("_SHAPE", shape)?;

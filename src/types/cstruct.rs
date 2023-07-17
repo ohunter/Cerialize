@@ -58,7 +58,7 @@ impl CStruct {
                     }
                 }
             })
-            .fold(0_usize, |acc, val| acc + val);
+            .sum();
 
         match attr_type {
             Some(type_) => Ok((type_, offset)),
@@ -82,13 +82,13 @@ impl CStruct {
             .call_method0("__packed_size__")?
             .extract::<usize>()?;
 
-        Ok(attr_type.call_method1(
+        attr_type.call_method1(
             "__new__",
             (
                 attr_type,
                 &slf.borrow().buffer.borrow()[buffer_offset..buffer_offset + type_size],
                 Some(slf.borrow().endianness),
             ),
-        )?)
+        )
     }
 }
