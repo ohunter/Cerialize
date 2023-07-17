@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyLong, PyTuple, PyType};
+use pyo3::types::{PyCFunction, PyDict, PyLong, PyTuple, PyType};
 
 use itertools::Itertools;
 
@@ -12,7 +12,7 @@ use std::sync::RwLock;
 static TYPE_CACHE: Lazy<RwLock<HashMap<TypeCacheKey, Py<PyType>>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct TypeCacheKey(Py<PyType>, Py<PyTuple>);
 
 impl PartialEq for TypeCacheKey {
@@ -76,6 +76,55 @@ impl Hash for TypeCacheKey {
 #[pyclass(module = "_cerialize", name = "Shaped", subclass)]
 pub struct PyShaped();
 
+impl PyShaped {
+    fn derived_packed_size(cls: &PyType) -> PyResult<usize> {
+        let base_cls = cls.getattr("__origin__")?;
+        Ok(base_cls
+            .call_method1("__packed_size__", ())?
+            .extract::<usize>()?
+            * cls
+                .getattr("_SHAPE")?
+                .downcast::<PyTuple>()?
+                .into_iter()
+                .fold(1_usize, |prod, val| prod * val.extract::<usize>().unwrap()))
+    }
+
+    fn wrap_function<F>(py: Python<'_>, func: F) -> PyResult<Py<PyAny>>
+    where
+        F: Fn(&PyTuple, Option<&PyDict>) -> PyResult<Py<PyAny>> + Sync + Send + 'static,
+    {
+        // A simple function wrapper
+        // This is necessary so that you can take functions which are defined in rust and assign them to dynamically created classes with the correct arguments
+        let wrapper_fn: Py<PyAny> = PyModule::from_code(
+            py,
+            // TODO: This currently only supports functions that are meant to be class methods. It'd be nice to support other function types as well
+            "
+def wrapper(fn):
+    def _cerialize_function_wrapper(*args, **kwargs):
+        return fn(*args, **kwargs)
+    
+    return classmethod(_cerialize_function_wrapper)
+            ",
+            "abstractions.rs",
+            "",
+        )?
+        .getattr("wrapper")?
+        .into();
+
+        // Create a builtin python function from the function being called
+        let fn_arg = PyCFunction::new_closure(
+            py,
+            None,
+            None,
+            move |args: &PyTuple, kwargs: Option<&PyDict>| -> PyResult<Py<PyAny>> {
+                func(args, kwargs)
+            },
+        )?;
+
+        wrapper_fn.call1(py, (fn_arg,))
+    }
+}
+
 #[pymethods]
 impl PyShaped {
     #[new]
@@ -119,9 +168,25 @@ impl PyShaped {
         // Cache the generated type to avoid issues with overwriting attributes
         if !TYPE_CACHE.read().unwrap().contains_key(&cache_key) {
             let types = PyModule::import(py, "types").unwrap();
+
             let class_name = format!("{}[{}]", cls.name().unwrap(), shape.iter().format(","));
-            let kwds: HashMap<&str, &pyo3::PyAny> =
-                HashMap::from_iter([("shape", PyTuple::new(py, &shape).into())]);
+
+            let packed_size_fn = Self::wrap_function(
+                py,
+                |args: &PyTuple, _kwargs: Option<&PyDict>| -> PyResult<_> {
+                    let cls = args.get_item(0)?.downcast::<PyType>()?;
+                    let packed_size = Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+                        Ok(Self::derived_packed_size(cls)?.to_object(py))
+                    });
+                    packed_size
+                },
+            )?;
+
+            let kwds: HashMap<&str, &pyo3::PyAny> = HashMap::from_iter([
+                ("origin", cls.into()),
+                ("shape", PyTuple::new(py, &shape).into()),
+                ("packed_size_fn", packed_size_fn.as_ref(py)),
+            ]);
 
             TYPE_CACHE.write().unwrap().insert(
                 cache_key.clone(),
@@ -143,10 +208,12 @@ impl PyShaped {
     }
 
     #[classmethod]
-    #[pyo3(signature = (*args, shape = None, **kwargs))]
+    #[pyo3(signature = (*args, origin, packed_size_fn, shape = None, **kwargs))]
     fn __init_subclass__(
         cls: &PyType,
         args: &PyTuple,
+        origin: &PyAny,
+        packed_size_fn: &PyAny,
         shape: Option<&PyTuple>,
         kwargs: Option<&PyDict>,
     ) -> PyResult<()> {
@@ -156,6 +223,18 @@ impl PyShaped {
         );
         cls.py_super()?
             .call_method("__init_subclass__", args, kwargs)?;
+
+        packed_size_fn.setattr("__name__", "__packed_size__")?;
+        packed_size_fn.setattr(
+            "__qualname__",
+            format!(
+                "{}.__packed_size__",
+                cls.getattr("__qualname__")?.extract::<String>()?
+            ),
+        )?;
+
+        cls.setattr("__origin__", origin)?;
+        cls.setattr("__packed_size__", packed_size_fn)?;
         cls.setattr("_SHAPE", shape)?;
         Ok(())
     }
